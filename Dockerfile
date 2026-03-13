@@ -17,7 +17,7 @@ ENV PUID=1000
 ENV PGID=1000
 
 # Install gosu for privilege switching
-RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y gosu && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Add entrypoint script for handling dynamic PUID/PGID
 ADD entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -29,6 +29,9 @@ WORKDIR /home/bun/app
 
 # Set the entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD bun -e "fetch('http://localhost:' + (process.env.LURKER_PORT || 3000) + '/login').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 # Default command
 CMD ["bun", "run", "src/index.js"]

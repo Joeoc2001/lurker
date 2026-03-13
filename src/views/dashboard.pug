@@ -67,8 +67,10 @@ html
                     td #{timeDifference(Date.now(), invite.usedAt)} ago
                   else
                     td unclaimed
-                  td 
-                    a(href=`/delete-invite/${invite.id}`) delete
+                  td
+                    form(action=`/delete-invite/${invite.id}` method="POST" style="display:inline")
+                      input(type="hidden" name="_csrf" value=csrfToken)
+                      button(type="submit") delete
 
           a(href="/create-invite") create invite
 

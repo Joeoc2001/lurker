@@ -567,8 +567,7 @@ router.post("/update-preferences", authenticateToken, async (req, res) => {
 
 router.get("/create-invite", authenticateAdmin, async (req, res) => {
 	function generateInviteToken() {
-		const hasher = new Bun.CryptoHasher("sha256");
-		return hasher.update(Math.random().toString()).digest("hex").slice(0, 10);
+		return require("node:crypto").randomBytes(16).toString("hex");
 	}
 
 	function createInvite() {
@@ -585,7 +584,7 @@ router.get("/create-invite", authenticateAdmin, async (req, res) => {
 	}
 });
 
-router.get("/delete-invite/:id", authenticateToken, async (req, res) => {
+router.post("/delete-invite/:id", authenticateAdmin, async (req, res) => {
 	try {
 		db.run("DELETE FROM invites WHERE id = $id", { id: req.params.id });
 		return res.redirect("/dashboard");

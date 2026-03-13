@@ -8,8 +8,13 @@ const logger = require("./logger");
 const oidc = require("./oidc");
 
 const app = express();
-const hasher = new Bun.CryptoHasher("sha256", "secret-key");
-const JWT_KEY = process.env.JWT_SECRET_KEY || hasher.update(Math.random().toString()).digest("hex");
+
+if (!process.env.JWT_SECRET_KEY) {
+	logger.warn(
+		"JWT_SECRET_KEY is not set. A random key will be generated, which means all sessions will be invalidated on restart. Set JWT_SECRET_KEY to a secure random value in production.",
+	);
+}
+const JWT_KEY = process.env.JWT_SECRET_KEY || crypto.randomBytes(32).toString("hex");
 const trustedProxyIPs = (process.env.REVERSE_PROXY_WHITELIST || "").split(",").map((ip) => ip.trim());
 const httpBinding = process.env.HTTP_BINDING || "0.0.0.0";
 const CSRF_COOKIE_NAME = "csrf_token";
@@ -140,6 +145,30 @@ async function bootstrap() {
 			});
 		}
 		res.locals.csrfToken = csrfToken;
+		next();
+	});
+
+	app.use((_req, res, next) => {
+		res.setHeader("X-Content-Type-Options", "nosniff");
+		res.setHeader("X-Frame-Options", "SAMEORIGIN");
+		res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+		res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+		res.setHeader(
+			"Content-Security-Policy",
+			[
+				"default-src 'self'",
+				"script-src 'self'",
+				"style-src 'self' 'unsafe-inline'",
+				"img-src 'self' data: https:",
+				"media-src 'self' https:",
+				"connect-src 'self'",
+				"font-src 'self'",
+				"object-src 'none'",
+				"base-uri 'self'",
+				"form-action 'self'",
+				"frame-ancestors 'self'",
+			].join("; "),
+		);
 		next();
 	});
 

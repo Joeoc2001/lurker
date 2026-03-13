@@ -12,10 +12,13 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           # Ensure line endings aren't modified during checkout
           autocrlf: false
@@ -70,7 +73,7 @@ jobs:
             git config --global user.email "actions@github.com"
             git add flake.nix
             git commit -m "Update outputHash in flake.nix"
-            git push
+            git push origin HEAD
 
             # Mark that the flake was updated
             echo "FLAKE_UPDATED=true" >> $GITHUB_ENV

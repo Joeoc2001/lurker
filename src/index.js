@@ -200,6 +200,11 @@ async function bootstrap() {
 		}),
 	);
 
+	const { isAuthDisabled } = require("./auth");
+	if (isAuthDisabled()) {
+		logger.warn("Authentication is disabled (DISABLE_AUTH=true). All routes are publicly accessible.");
+	}
+
 	app.use("/", routes);
 
 	const sslCertPath = process.env.LURKER_SSL_CERT_PATH;

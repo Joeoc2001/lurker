@@ -51,6 +51,21 @@ function groupsJson(groups) {
 	}
 }
 
+function isAuthDisabled() {
+	const value = String(process.env.DISABLE_AUTH || "").toLowerCase();
+	return value === "true" || value === "1";
+}
+
+function getOrCreateAnonymousUser() {
+	const username = "admin";
+	let user = db.query("SELECT * FROM users WHERE username = $username").get({ username });
+	if (!user) {
+		db.query("INSERT INTO users (username, password_hash, isAdmin) VALUES ($username, '', 1)").run({ username });
+		user = db.query("SELECT * FROM users WHERE username = $username").get({ username });
+	}
+	return user;
+}
+
 // Helper function to log token issues
 function logTokenError(message, error) {
 	logger.error(message, error);
@@ -58,6 +73,11 @@ function logTokenError(message, error) {
 
 // Middleware to authenticate using JWT token (from cookies)
 async function authenticateToken(req, res, next) {
+	if (isAuthDisabled()) {
+		req.user = getOrCreateAnonymousUser();
+		return next();
+	}
+
 	const token = req.cookies && req.cookies.auth_token;
 	const remoteGroups = parseRemoteGroups(req);
 	const isAdminFromHeaders = remoteGroups.includes(process.env.ADMIN_GROUP || "admin") ? 1 : 0;
@@ -142,6 +162,11 @@ async function authenticateToken(req, res, next) {
 
 // Middleware to authenticate admin (checks if user has admin privileges)
 async function authenticateAdmin(req, res, next) {
+	if (isAuthDisabled()) {
+		req.user = getOrCreateAnonymousUser();
+		return next();
+	}
+
 	const token = req.cookies && req.cookies.auth_token;
 	const remoteGroups = parseRemoteGroups(req);
 	const isAdminFromHeaders = remoteGroups.includes(process.env.ADMIN_GROUP || "admin") ? 1 : 0;
@@ -216,4 +241,4 @@ async function authenticateAdmin(req, res, next) {
 	return res.status(403).send("Only admins can access this route.");
 }
 
-module.exports = { authenticateToken, authenticateAdmin };
+module.exports = { authenticateToken, authenticateAdmin, isAuthDisabled };

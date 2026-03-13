@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const geddit = require("../geddit.js");
 const { JWT_KEY } = require("../");
 const { db } = require("../db");
-const { authenticateToken, authenticateAdmin } = require("../auth");
+const { authenticateToken, authenticateAdmin, isAuthDisabled } = require("../auth");
 const { validateInviteToken } = require("../invite");
 const logger = require("../logger");
 const oidc = require("../oidc");
@@ -603,7 +603,10 @@ router.get(/^\/media\/(.*)$/, authenticateToken, async (req, res) => {
 	res.render("media", { kind, url, ...commonRenderOptions });
 });
 
-router.get("/register", validateInviteToken, async (req, res) => {
+router.get("/register", (req, res, next) => {
+	if (isAuthDisabled()) return res.redirect("/");
+	next();
+}, validateInviteToken, async (req, res) => {
 	res.render("register", {
 		isDisabled: false,
 		token: req.query.token,
@@ -852,6 +855,10 @@ router.get("/auth/oidc/callback", async (req, res) => {
 
 // GET /login
 router.get("/login", async (req, res, next) => {
+  if (isAuthDisabled()) {
+    return res.redirect("/");
+  }
+
   const token = req.cookies.auth_token;
   if (token) {
     return res.redirect("/");
@@ -911,6 +918,9 @@ router.post("/login", async (req, res) => {
 
 // GET /logout (clear JWT and log out user)
 router.get("/logout", (req, res) => {
+  if (isAuthDisabled()) {
+    return res.redirect("/");
+  }
   res.clearCookie("auth_token", { httpOnly: true, secure: true });
   res.redirect("/login");
 });

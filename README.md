@@ -63,7 +63,7 @@ my use.
 you can run lurker as a systemd service on nixos:
 
 ```nix
-inputs.lurker.url= "git+https://github.com/voc0der/lurker";
+inputs.lurker.url= "git+https://github.com/Joeoc2001/lurker";
   .
   .
   .
@@ -77,16 +77,16 @@ or with the docker image:
 
 ```bash
 # pull the latest image from gh container registry
-$ docker pull ghcr.io/voc0der/lurker:latest
+$ docker pull ghcr.io/Joeoc2001/lurker:latest
 
 REPOSITORY                   TAG       IMAGE ID       CREATED        SIZE
-ghcr.io/voc0der/lurker   latest    ba3733164889   ???            227MB
+ghcr.io/Joeoc2001/lurker   latest    ba3733164889   ???            227MB
 
 # start lurker in a container
 #
 # lurker stores data in /data,
 # so create a volume on the host accordingly:
-$ docker run -v /your/host/lurker-data:/data -p 3000 ghcr.io/voc0der/lurker:latest
+$ docker run -v /your/host/lurker-data:/data -p 3000 ghcr.io/Joeoc2001/lurker:latest
 ```
 
 or with docker compose:
@@ -95,7 +95,7 @@ or with docker compose:
 ---
 services:
   lurker:
-    image: ghcr.io/voc0der/lurker:latest
+    image: ghcr.io/Joeoc2001/lurker:latest
     container_name: lurker
     environment:
       - PUID=1000              # user ID for file permissions
@@ -225,4 +225,4 @@ This is a fork of https://github.com/oppiliappan/lurker/ and I respect their wor
 
 ### star history
 
-[![Star History Chart](https://api.star-history.com/svg?repos=voc0der/lurker&type=Date)](https://star-history.com/#voc0der/lurker&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Joeoc2001/lurker&type=Date)](https://star-history.com/#Joeoc2001/lurker&Date)
